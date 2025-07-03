@@ -23,15 +23,28 @@ from reportlab.lib.utils import ImageReader
 class QRCodeGenerator:
     """Handles QR code generation and manipulation."""
     
-    def __init__(self, size: int = 100, border: int = 2):
+    # QR code size presets (in points)
+    SIZE_PRESETS = {
+        'small': 30,
+        'medium': 50,
+        'large': 80
+    }
+    
+    def __init__(self, size: str = 'medium', border: int = 2):
         """
         Initialize QR code generator.
         
         Args:
-            size: Size of the QR code in pixels
+            size: Size preset ('small', 'medium', 'large') or custom size in points
             border: Border width around the QR code
         """
-        self.size = size
+        if size in self.SIZE_PRESETS:
+            self.size = self.SIZE_PRESETS[size]
+        else:
+            try:
+                self.size = int(size)
+            except ValueError:
+                raise ValueError(f"Invalid size: {size}. Use 'small', 'medium', 'large', or a number.")
         self.border = border
     
     def generate_qr_code(self, data: str) -> Image.Image:
@@ -71,17 +84,18 @@ class QRCodeGenerator:
 class PDFHeaderFooter:
     """Handles adding headers and footers to PDF pages."""
     
-    def __init__(self, page_width: float, page_height: float):
+    def __init__(self, page_width: float, page_height: float, qr_size: str = 'medium'):
         """
         Initialize PDF header/footer handler.
         
         Args:
             page_width: Width of the PDF page in points
             page_height: Height of the PDF page in points
+            qr_size: Size of QR code ('small', 'medium', 'large', or custom number)
         """
         self.page_width = page_width
         self.page_height = page_height
-        self.qr_generator = QRCodeGenerator()
+        self.qr_generator = QRCodeGenerator(size=qr_size)
     
     def create_header_footer_overlay(self, qr_data: str, footer_message: str) -> BytesIO:
         """
@@ -127,7 +141,7 @@ class PDFHeaderFooter:
         qr_img_reader = ImageReader(qr_buffer)
         
         # Calculate position (top right, with some margin)
-        qr_size = 50  # Size in points
+        qr_size = self.qr_generator.size  # Use the configured size
         margin = 20
         x_position = self.page_width - qr_size - margin
         y_position = self.page_height - qr_size - margin
@@ -165,7 +179,7 @@ class PDFProcessor:
         self.header_footer_handler = None
     
     def process_pdf(self, input_path: str, output_path: str, 
-                   qr_data: str, footer_message: str) -> None:
+                   qr_data: str, footer_message: str, qr_size: str = 'medium') -> None:
         """
         Process the input PDF and add headers/footers to each page.
         
@@ -174,6 +188,7 @@ class PDFProcessor:
             output_path: Path for output PDF file
             qr_data: Data to encode in QR code
             footer_message: Message to display in footer
+            qr_size: Size of QR code ('small', 'medium', 'large', or custom number)
         """
         try:
             # Open input PDF
@@ -190,7 +205,7 @@ class PDFProcessor:
                     page_height = float(page.mediabox.height)
                     
                     # Initialize header/footer handler for this page
-                    self.header_footer_handler = PDFHeaderFooter(page_width, page_height)
+                    self.header_footer_handler = PDFHeaderFooter(page_width, page_height, qr_size)
                     
                     # Create overlay with header and footer
                     overlay_buffer = self.header_footer_handler.create_header_footer_overlay(
@@ -272,6 +287,12 @@ def main():
         help="Message to display in footer"
     )
     parser.add_argument(
+        "--qr-size", "-s",
+        default="medium",
+        choices=["small", "medium", "large"],
+        help="QR code size: small (30pt), medium (50pt), or large (80pt) (default: medium)"
+    )
+    parser.add_argument(
         "--output", "-o",
         help="Output PDF file path (default: input_sealed.pdf)"
     )
@@ -294,7 +315,8 @@ def main():
             args.input_pdf,
             output_path,
             args.qr_data,
-            args.footer_message
+            args.footer_message,
+            args.qr_size
         )
     except Exception as e:
         print(f"Failed to process PDF: {str(e)}")

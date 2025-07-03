@@ -53,6 +53,7 @@ python pdf_sealer.py input.pdf \
 - `input_pdf`: Path to the input PDF file (required)
 - `--qr-data, -q`: String data to encode in QR code (required)
 - `--footer-message, -f`: Message to display in footer (required)
+- `--qr-size, -s`: QR code size: small (30pt), medium (50pt), or large (80pt) (default: medium)
 - `--output, -o`: Output PDF file path (optional, defaults to `input_sealed.pdf`)
 
 ### Examples
@@ -70,6 +71,15 @@ python pdf_sealer.py report.pdf --qr-data "scan.me/report" --footer-message "Int
 3. **QR code with contact information**:
 ```bash
 python pdf_sealer.py contact.pdf --qr-data "mailto:contact@company.com" --footer-message "Contact: contact@company.com"
+```
+
+4. **Different QR code sizes**:
+```bash
+# Small QR code
+python pdf_sealer.py document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size small
+
+# Large QR code
+python pdf_sealer.py document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size large
 ```
 
 ## Project Structure
@@ -114,7 +124,10 @@ The project is organized into three main classes:
 ## QR Code Positioning
 
 - **Location**: Top-right corner of each page
-- **Size**: 50 points (approximately 0.7 inches)
+- **Size Options**: 
+  - Small: 30 points (approximately 0.4 inches)
+  - Medium: 50 points (approximately 0.7 inches) - default
+  - Large: 80 points (approximately 1.1 inches)
 - **Margin**: 20 points from page edges
 - **Content**: Custom string data provided via command line
 
@@ -135,7 +148,7 @@ The application includes comprehensive error handling for:
 
 ## Limitations
 
-- QR code size is fixed at 50 points
+- QR code size is limited to predefined options (small, medium, large)
 - Footer font and size are predefined
 - Only supports standard PDF formats
 - QR code positioning is fixed to top-right corner

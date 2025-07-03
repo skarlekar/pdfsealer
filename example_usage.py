@@ -29,7 +29,7 @@ def example_basic_usage():
     
     try:
         # Process the PDF
-        processor.process_pdf(input_pdf, output_pdf, qr_data, footer_message)
+        processor.process_pdf(input_pdf, output_pdf, qr_data, footer_message, 'medium')
         print(f"✓ Successfully sealed PDF: {output_pdf}")
         
     except Exception as e:
@@ -40,18 +40,20 @@ def example_qr_code_only():
     """Example of generating QR codes without PDF processing."""
     print("\n=== QR Code Generation Example ===")
     
-    # Initialize QR code generator
-    qr_gen = QRCodeGenerator(size=200, border=4)
+    # Initialize QR code generator with different sizes
+    qr_gen_small = QRCodeGenerator(size='small', border=2)
+    qr_gen_medium = QRCodeGenerator(size='medium', border=2)
+    qr_gen_large = QRCodeGenerator(size='large', border=2)
     
-    # Generate different types of QR codes
+    # Generate different types of QR codes with different sizes
     qr_examples = [
-        ("https://www.google.com", "google_qr.png"),
-        ("mailto:contact@company.com", "email_qr.png"),
-        ("tel:+1234567890", "phone_qr.png"),
-        ("This is a text message", "text_qr.png")
+        ("https://www.google.com", "google_qr_small.png", qr_gen_small),
+        ("mailto:contact@company.com", "email_qr_medium.png", qr_gen_medium),
+        ("tel:+1234567890", "phone_qr_large.png", qr_gen_large),
+        ("This is a text message", "text_qr_medium.png", qr_gen_medium)
     ]
     
-    for data, filename in qr_examples:
+    for data, filename, qr_gen in qr_examples:
         try:
             qr_gen.save_qr_code(data, filename)
             print(f"✓ Generated QR code: {filename} (data: {data[:30]}...)")
@@ -71,13 +73,15 @@ def example_custom_processing():
             "input": "document1.pdf",
             "output": "document1_sealed.pdf",
             "qr_data": "https://company.com/doc1",
-            "footer": "Internal Document - Version 1.0"
+            "footer": "Internal Document - Version 1.0",
+            "qr_size": "small"
         },
         {
             "input": "document2.pdf", 
             "output": "document2_sealed.pdf",
             "qr_data": "https://company.com/doc2",
-            "footer": "Confidential - Do Not Distribute"
+            "footer": "Confidential - Do Not Distribute",
+            "qr_size": "large"
         }
     ]
     
@@ -88,7 +92,8 @@ def example_custom_processing():
                     config["input"],
                     config["output"], 
                     config["qr_data"],
-                    config["footer"]
+                    config["footer"],
+                    config.get("qr_size", "medium")
                 )
                 print(f"✓ Processed: {config['input']} → {config['output']}")
             except Exception as e:
@@ -130,7 +135,7 @@ def main():
     print("\n" + "=" * 50)
     print("Examples completed!")
     print("\nTo run the actual PDF sealer:")
-    print("python pdf_sealer.py input.pdf --qr-data 'your-data' --footer-message 'your-message'")
+    print("python pdf_sealer.py input.pdf --qr-data 'your-data' --footer-message 'your-message' --qr-size medium")
 
 
 if __name__ == "__main__":
