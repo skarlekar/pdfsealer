@@ -233,12 +233,7 @@ sess_*
 # PHP cache files
 *.cache
 
-# Generated PDF files (output from PDF Sealer)
-*_sealed.pdf
-input_sealed.pdf
-output.pdf
-docs/output.pdf
-docs/output_php.pdf
+
 
 # Generated QR code images
 example_qr*.png
