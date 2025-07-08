@@ -14,7 +14,7 @@ import PyPDF2
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch
-from reportlab.lib.colors import black, white, gray, HexColor
+from reportlab.lib.colors import black, white
 import qrcode
 from PIL import Image
 from reportlab.lib.utils import ImageReader
@@ -30,7 +30,7 @@ class QRCodeGenerator:
         'large': 80
     }
     
-    def __init__(self, size: str = 'small', border: int = 2):
+    def __init__(self, size: str = 'medium', border: int = 2):
         """
         Initialize QR code generator.
         
@@ -66,7 +66,6 @@ class QRCodeGenerator:
         qr.add_data(data)
         qr.make(fit=True)
         
-        # Always use dark black for QR codes, regardless of watermark opacity
         qr_image = qr.make_image(fill_color="black", back_color="white")
         return qr_image
     
@@ -80,33 +79,6 @@ class QRCodeGenerator:
         """
         qr_image = self.generate_qr_code(data)
         qr_image.save(filename)
-
-
-class WatermarkConfig:
-    """Configuration for watermark generation."""
-    
-    def __init__(self, text: str, font_size: int = 24, opacity: float = 0.4, 
-                 angle: int = 45, spacing_x: float = 200, spacing_y: float = 150, 
-                 color: str = "#CCCCCC"):
-        """
-        Initialize watermark configuration.
-        
-        Args:
-            text: Text to display as watermark
-            font_size: Font size for watermark text (8-72, default: 24)
-            opacity: Opacity of watermark (0.1-1.0, default: 0.2)
-            angle: Rotation angle in degrees (-90 to 90, default: 45)
-            spacing_x: Horizontal spacing between watermarks (50-500, default: 200)
-            spacing_y: Vertical spacing between watermarks (50-500, default: 150)
-            color: Color of watermark text in hex format (default: #CCCCCC)
-        """
-        self.text = text
-        self.font_size = max(8, min(72, font_size))
-        self.opacity = max(0.1, min(1.0, opacity))
-        self.angle = max(-90, min(90, angle))
-        self.spacing_x = max(50, min(500, spacing_x))
-        self.spacing_y = max(50, min(500, spacing_y))
-        self.color = color
 
 
 class PDFHeaderFooter:
@@ -125,24 +97,19 @@ class PDFHeaderFooter:
         self.page_height = page_height
         self.qr_generator = QRCodeGenerator(size=qr_size)
     
-    def create_header_footer_overlay(self, qr_data: str, footer_message: str, watermark_config: Optional[WatermarkConfig] = None) -> BytesIO:
+    def create_header_footer_overlay(self, qr_data: str, footer_message: str) -> BytesIO:
         """
-        Create a PDF overlay with header (QR code), footer (message), and optional watermark.
+        Create a PDF overlay with header (QR code) and footer (message).
         
         Args:
             qr_data: Data to encode in QR code
             footer_message: Message to display in footer
-            watermark_config: Optional watermark configuration
             
         Returns:
             BytesIO object containing the overlay PDF
         """
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=(self.page_width, self.page_height))
-        
-        # Add watermark first (so it appears behind other elements)
-        if watermark_config:
-            self._add_watermark_to_canvas(c, watermark_config)
         
         # Add QR code to top right
         self._add_qr_code_to_canvas(c, qr_data)
@@ -202,58 +169,6 @@ class PDFHeaderFooter:
         
         # Add footer text
         canvas_obj.drawString(x_position, y_position, footer_message)
-    
-    def _add_watermark_to_canvas(self, canvas_obj: canvas.Canvas, watermark_config: WatermarkConfig) -> None:
-        """
-        Add watermark text across the entire canvas in a repeating pattern.
-        
-        Args:
-            canvas_obj: ReportLab canvas object
-            watermark_config: WatermarkConfig object containing watermark settings
-        """
-        # Set font and size
-        canvas_obj.setFont("Helvetica-Bold", watermark_config.font_size)
-        
-        # Set color and opacity
-        try:
-            color = HexColor(watermark_config.color)
-            # Apply opacity by adjusting alpha
-            color.alpha = watermark_config.opacity
-            canvas_obj.setFillColor(color)
-        except:
-            # Fallback to gray if color parsing fails
-            canvas_obj.setFillColor(gray)
-        
-        # Calculate text width for spacing
-        text_width = canvas_obj.stringWidth(watermark_config.text, "Helvetica-Bold", watermark_config.font_size)
-        
-        # Calculate spacing to ensure watermarks cover the entire page
-        spacing_x = max(watermark_config.spacing_x, text_width + 50)
-        spacing_y = max(watermark_config.spacing_y, watermark_config.font_size + 50)
-        
-        # Calculate how many watermarks we need in each direction
-        num_cols = int(self.page_width / spacing_x) + 2  # Add extra for overlap
-        num_rows = int(self.page_height / spacing_y) + 2  # Add extra for overlap
-        
-        # Draw watermarks in a grid pattern
-        for row in range(num_rows):
-            for col in range(num_cols):
-                # Calculate position
-                x = col * spacing_x
-                y = self.page_height - (row * spacing_y)
-                
-                # Save current state
-                canvas_obj.saveState()
-                
-                # Move to position and rotate
-                canvas_obj.translate(x, y)
-                canvas_obj.rotate(watermark_config.angle)
-                
-                # Draw the watermark text
-                canvas_obj.drawString(0, 0, watermark_config.text)
-                
-                # Restore state
-                canvas_obj.restoreState()
 
 
 class PDFProcessor:
@@ -264,8 +179,7 @@ class PDFProcessor:
         self.header_footer_handler = None
     
     def process_pdf(self, input_path: str, output_path: str, 
-                   qr_data: str, footer_message: str, qr_size: str = 'medium',
-                   watermark_config: Optional[WatermarkConfig] = None) -> None:
+                   qr_data: str, footer_message: str, qr_size: str = 'medium') -> None:
         """
         Process the input PDF and add headers/footers to each page.
         
@@ -275,7 +189,6 @@ class PDFProcessor:
             qr_data: Data to encode in QR code
             footer_message: Message to display in footer
             qr_size: Size of QR code ('small', 'medium', 'large', or custom number)
-            watermark_config: Optional watermark configuration
         """
         try:
             # Open input PDF
@@ -294,9 +207,9 @@ class PDFProcessor:
                     # Initialize header/footer handler for this page
                     self.header_footer_handler = PDFHeaderFooter(page_width, page_height, qr_size)
                     
-                    # Create overlay with header, footer, and optional watermark
+                    # Create overlay with header and footer
                     overlay_buffer = self.header_footer_handler.create_header_footer_overlay(
-                        qr_data, footer_message, watermark_config
+                        qr_data, footer_message
                     )
                     
                     # Create overlay PDF
@@ -375,36 +288,9 @@ def main():
     )
     parser.add_argument(
         "--qr-size", "-s",
-        default="small",
+        default="medium",
         choices=["small", "medium", "large"],
-        help="QR code size: small (30pt), medium (50pt), or large (80pt) (default: small)"
-    )
-    parser.add_argument(
-        "--watermark-text", "-w",
-        help="Text to display as watermark across the document"
-    )
-    parser.add_argument(
-        "--watermark-font-size",
-        type=int,
-        default=24,
-        help="Font size for watermark text (default: 24)"
-    )
-    parser.add_argument(
-        "--watermark-opacity",
-        type=float,
-        default=0.4,
-        help="Opacity of watermark (0.1 to 1.0, default: 0.2)"
-    )
-    parser.add_argument(
-        "--watermark-angle",
-        type=int,
-        default=45,
-        help="Rotation angle of watermark in degrees (default: 45)"
-    )
-    parser.add_argument(
-        "--watermark-color",
-        default="#CCCCCC",
-        help="Color of watermark text in hex format (default: #000000)"
+        help="QR code size: small (30pt), medium (50pt), or large (80pt) (default: medium)"
     )
     parser.add_argument(
         "--output", "-o",
@@ -423,17 +309,6 @@ def main():
     # Generate output path if not provided
     output_path = args.output if args.output else processor.generate_output_path(args.input_pdf)
     
-    # Create watermark config if watermark text is provided
-    watermark_config = None
-    if args.watermark_text:
-        watermark_config = WatermarkConfig(
-            text=args.watermark_text,
-            font_size=args.watermark_font_size,
-            opacity=args.watermark_opacity,
-            angle=args.watermark_angle,
-            color=args.watermark_color
-        )
-    
     # Process PDF
     try:
         processor.process_pdf(
@@ -441,8 +316,7 @@ def main():
             output_path,
             args.qr_data,
             args.footer_message,
-            args.qr_size,
-            watermark_config
+            args.qr_size
         )
     except Exception as e:
         print(f"Failed to process PDF: {str(e)}")

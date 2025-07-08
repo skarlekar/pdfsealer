@@ -1,6 +1,6 @@
-# PDF Sealer
+# PDF Sealer - PHP Version
 
-A modular Python project that adds custom headers and footers to PDF files. The header includes a QR code generated from a given string, and the footer includes a custom message. The tool also supports adding watermarks across the document. All original content and layout is preserved while adding the new elements.
+A PHP equivalent of the Python PDF Sealer project that adds custom headers and footers to PDF files. The header includes a QR code generated from a given string, and the footer includes a custom message. The tool also supports adding watermarks across the document.
 
 ## Features
 
@@ -12,22 +12,12 @@ A modular Python project that adds custom headers and footers to PDF files. The 
 - **Command Line Interface**: Easy-to-use CLI with flexible options
 - **Error Handling**: Comprehensive validation and error handling
 
+## Requirements
+
+- PHP 8.0 or higher
+- Composer for dependency management
+
 ## Installation
-
-### Python Version
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd pdfsealer
-```
-
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### PHP Version
 
 1. Clone the repository:
 ```bash
@@ -40,27 +30,23 @@ cd pdfsealer
 composer install
 ```
 
-**Note**: This project now supports both Python and PHP versions. See [README_PHP.md](README_PHP.md) for detailed PHP documentation.
-
 ## Dependencies
 
-- **PyPDF2**: PDF manipulation and merging
-- **reportlab**: PDF generation and drawing
-- **qrcode**: QR code generation
-- **Pillow**: Image processing for QR codes
+- **endroid/qr-code**: QR code generation
+- **setasign/fpdf**: PDF generation and manipulation
 
 ## Usage
 
 ### Basic Usage
 
 ```bash
-python pdf_sealer.py input.pdf --qr-data "https://example.com" --footer-message "Confidential Document"
+php pdf_sealer.php input.pdf --qr-data "https://example.com" --footer-message "Confidential Document"
 ```
 
 ### Advanced Usage with Watermark
 
 ```bash
-python pdf_sealer.py input.pdf \
+php pdf_sealer.php input.pdf \
     --qr-data "https://example.com/document/123" \
     --footer-message "Company Name - Page {page}" \
     --watermark-text "CONFIDENTIAL" \
@@ -72,45 +58,46 @@ python pdf_sealer.py input.pdf \
 ### Command Line Arguments
 
 - `input_pdf`: Path to the input PDF file (required)
-- `--qr-data, -q`: String data to encode in QR code (required)
-- `--footer-message, -f`: Message to display in footer (required)
-- `--qr-size, -s`: QR code size: small (30pt), medium (50pt), or large (80pt) (default: small)
-- `--watermark-text, -w`: Text to display as watermark across the document (optional)
-- `--watermark-font-size`: Font size for watermark text (8-72, default: 24)
-- `--watermark-opacity`: Opacity of watermark (0.1-1.0, default: 0.4)
-- `--watermark-angle`: Rotation angle of watermark in degrees (-90 to 90, default: 45)
-- `--watermark-color`: Color of watermark text in hex format (default: #CCCCCC)
-- `--output, -o`: Output PDF file path (optional, defaults to `input_sealed.pdf`)
+- `--qr-data <data>`: String data to encode in QR code (required)
+- `--footer-message <text>`: Message to display in footer (required)
+- `--qr-size <size>`: QR code size: small, medium, or large (default: small)
+- `--watermark-text <text>`: Text to display as watermark across the document (optional)
+- `--watermark-font-size <size>`: Font size for watermark text (default: 24)
+- `--watermark-opacity <opacity>`: Opacity of watermark (0.1-1.0, default: 0.4)
+- `--watermark-angle <angle>`: Rotation angle of watermark in degrees (default: 45)
+- `--watermark-color <color>`: Color of watermark text in hex format (default: #CCCCCC)
+- `--output <file>`: Output PDF file path (optional, defaults to `input_sealed.pdf`)
+- `--help`: Show help message
 
 ### Examples
 
 1. **Simple document sealing**:
 ```bash
-python pdf_sealer.py document.pdf --qr-data "https://company.com/doc/123" --footer-message "Confidential"
+php pdf_sealer.php document.pdf --qr-data "https://company.com/doc/123" --footer-message "Confidential"
 ```
 
 2. **Custom output filename**:
 ```bash
-python pdf_sealer.py report.pdf --qr-data "scan.me/report" --footer-message "Internal Use Only" --output sealed_report.pdf
+php pdf_sealer.php report.pdf --qr-data "scan.me/report" --footer-message "Internal Use Only" --output sealed_report.pdf
 ```
 
 3. **QR code with contact information**:
 ```bash
-python pdf_sealer.py contact.pdf --qr-data "mailto:contact@company.com" --footer-message "Contact: contact@company.com"
+php pdf_sealer.php contact.pdf --qr-data "mailto:contact@company.com" --footer-message "Contact: contact@company.com"
 ```
 
 4. **Different QR code sizes**:
 ```bash
 # Small QR code (default)
-python pdf_sealer.py document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size small
+php pdf_sealer.php document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size small
 
 # Large QR code
-python pdf_sealer.py document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size large
+php pdf_sealer.php document.pdf --qr-data "https://example.com" --footer-message "Confidential" --qr-size large
 ```
 
 5. **Document with watermark**:
 ```bash
-python pdf_sealer.py document.pdf \
+php pdf_sealer.php document.pdf \
     --qr-data "https://example.com" \
     --footer-message "Confidential Document" \
     --watermark-text "DRAFT" \
@@ -120,7 +107,7 @@ python pdf_sealer.py document.pdf \
 
 6. **Custom watermark color and size**:
 ```bash
-python pdf_sealer.py document.pdf \
+php pdf_sealer.php document.pdf \
     --qr-data "https://example.com" \
     --footer-message "Company Internal" \
     --watermark-text "CONFIDENTIAL" \
@@ -133,25 +120,20 @@ python pdf_sealer.py document.pdf \
 
 ```
 pdfsealer/
-├── pdf_sealer.py      # Main Python application file
 ├── pdf_sealer.php     # Main PHP application file
-├── requirements.txt   # Python dependencies
 ├── composer.json      # PHP dependencies
-├── README.md         # This file (Python version)
-├── README_PHP.md     # PHP version documentation
-├── example_usage.py  # Python example usage script
-├── example_usage_php.php # PHP example usage script
-├── test_pdf_sealer.py # Python test suite
-├── test_pdf_sealer_php.php # PHP test suite
+├── README_PHP.md      # This file
+├── requirements.txt   # Python dependencies (original version)
+├── pdf_sealer.py      # Python version
 └── LICENSE           # License information
 ```
 
 ## Code Architecture
 
-The project is organized into four main classes:
+The PHP project is organized into four main classes:
 
 ### QRCodeGenerator
-- Handles QR code generation and manipulation
+- Handles QR code generation and manipulation using endroid/qr-code
 - Configurable size and border settings
 - Supports saving QR codes to files
 - Always generates dark black QR codes for maximum readability
@@ -162,6 +144,7 @@ The project is organized into four main classes:
 - Validates parameters within acceptable ranges
 
 ### PDFHeaderFooter
+- Extends FPDF for PDF generation
 - Manages header and footer overlay creation
 - Positions QR codes in top-right corner
 - Centers footer messages at bottom
@@ -177,9 +160,9 @@ The project is organized into four main classes:
 ## How It Works
 
 1. **Input Validation**: Checks if the input file exists and is a valid PDF
-2. **Page Processing**: Iterates through each page of the input PDF
+2. **Page Processing**: Creates a new PDF with the overlay content
 3. **Overlay Creation**: Creates a new PDF overlay with QR code, footer, and optional watermark
-4. **Page Merging**: Merges the overlay with the original page content
+4. **Page Merging**: Combines the overlay with the original page content
 5. **Output Generation**: Writes the modified PDF to the output file
 
 ## QR Code Positioning
@@ -227,6 +210,21 @@ The application includes comprehensive error handling for:
 - Only supports standard PDF formats
 - QR code positioning is fixed to top-right corner
 - Watermark text is limited to single line
+- Current implementation creates a new PDF rather than modifying existing PDF pages
+
+## Development
+
+### Running Tests
+
+```bash
+composer test
+```
+
+### Code Coverage
+
+```bash
+composer test-coverage
+```
 
 ## Contributing
 
@@ -244,20 +242,25 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### Common Issues
 
-1. **Import Errors**: Make sure all dependencies are installed:
+1. **Composer Dependencies**: Make sure all dependencies are installed:
    ```bash
-   pip install -r requirements.txt
+   composer install
    ```
 
-2. **File Not Found**: Ensure the input PDF file exists and the path is correct
+2. **PHP Version**: Ensure you're using PHP 8.0 or higher:
+   ```bash
+   php --version
+   ```
 
-3. **Permission Errors**: Check file permissions for read/write access
+3. **File Not Found**: Ensure the input PDF file exists and the path is correct
 
-4. **Large QR Codes**: If QR code data is too long, consider using a URL shortener
+4. **Permission Errors**: Check file permissions for read/write access
 
-5. **Watermark Too Light**: Increase opacity (0.6-0.7) or use darker color (#888888)
+5. **Large QR Codes**: If QR code data is too long, consider using a URL shortener
 
-6. **Watermark Too Dark**: Decrease opacity (0.2-0.3) or use lighter color (#CCCCCC)
+6. **Watermark Too Light**: Increase opacity (0.6-0.7) or use darker color (#888888)
+
+7. **Watermark Too Dark**: Decrease opacity (0.2-0.3) or use lighter color (#CCCCCC)
 
 ### Getting Help
 
@@ -267,3 +270,17 @@ If you encounter issues:
 3. Ensure input file is a valid PDF
 4. Check file permissions and paths
 5. Test with different watermark settings for optimal visibility
+
+## Comparison with Python Version
+
+| Feature | Python Version | PHP Version |
+|---------|----------------|-------------|
+| QR Code Generation | qrcode + PIL | endroid/qr-code |
+| PDF Manipulation | PyPDF2 + reportlab | FPDF |
+| Watermark Support | ✅ | ✅ |
+| CLI Interface | argparse | getopt |
+| Error Handling | ✅ | ✅ |
+| Modular Design | ✅ | ✅ |
+| Type Hints | ✅ | ✅ (PHP 8.0+) |
+
+Both versions provide the same core functionality with similar APIs and command-line interfaces. 
